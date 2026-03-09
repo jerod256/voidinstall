@@ -189,15 +189,47 @@ XBPS_ARCH=arch xbps-install -Sfy -R $mirror -R $mirror_nonfree -r /mnt $pkg_base
 echo "generating filesystem table..."
 xgenfstab /mnt > /mnt/etc/fstab
 
+### set permissions for the root
 chroot /mnt chown root:root /
 chroot /mnt chmod 755 /
+chroot /mnt chpasswd <<< "root:$PASS1"
+echo voidlap > /mnt/etc/hostname
+
+### set locales and languages
 echo "LANG=en_US.UTF-8" > /mnt/etc/local.conf
 echo "en_US.UTF-8 UTF-8" >> /mnt/etc/default/libc-locales
+chroot /mnt xbps-reconfigure -f glibc-locales
 
-chroot /mnt chpasswd <<< "root:$PASS1"
+### setup primary user
 chroot /mnt useradd -m -G wheel,audio,video,cdrom,optical,storage,kvm,input,plugdev,users,xbuilder,bluetooth,_pipewire,_seatd -s /bin/bash $USER
 chroot /mnt chpasswd <<< "$USER:$PASS1"
 chroot /mnt sed -i 's/^# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers
+
+
+###############################################
+##### Secure boot setup and TPM enrolment #####
+###############################################
+#
+
+
+#####################################################
+##### Moving system scripts (copying /etc files #####
+#####################################################
+#
+
+
+################################################
+##### Setup Services, Daemons and Security #####
+################################################
+#
+
+
+#####################################################################
+##### Setup user space, displayer services and shell interfaces #####
+#####################################################################
+#
+### Setup Display Server greetd
+
 
 ### a temporary block of code to make sure entries are properly captured
 echo $PASS1
