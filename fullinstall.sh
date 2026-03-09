@@ -23,7 +23,7 @@
 ### # xbps-install -Sfu xbps
 ### # xbps-install -Sfy parted git
 ### # git clone https://github.com/jerod256/voidinstall_secure.git
-### # cd /voidinstall_secure
+### # cd voidinstall_secure
 ### # chmod +x fullinstall.sh
 ### # ./fullinstall.sh
 
@@ -54,21 +54,21 @@ pkg_gui="seatd pipewire wireplumber xdg_desktop_portal_wlroots polkit dbus fuzze
 ### 1. target disk label
 lsblk
 echo -n "Enter the name of the target disk as shown above [leave blank for default]"
-read -p temp_disk
+read temp_disk
 disk="${temp_disk:-$default_disk}"
 echo
 echo
 
 ### 2. EFI partition size
 echo -n "Enter the size of the partition [leave blank for default]"
-read -p temp_efisize
+read temp_efisize
 efi_size="${temp_efisize:-$default_efi_size}"
 echo
 echo
 
 ### 3. User name
 echo -n "Enter the username [leave blank for default]"
-read -p temp_username
+read temp_username
 USER="${temp_username:-$default_USER}"
 echo
 echo
@@ -128,17 +128,17 @@ parted -s /dev/${disk} set 1 esp on
 
 ### Encrypt root partition
 echo "Encrypt root partition with LUKS2 aes-512..."
-echo "$CRYPTPASS1" | cryptsetup --label crypt --type luks2 --cipher aes-xts-plain64 --key-size 512 --hash sha512 --iter-time 1000 --use-random luksFormat ${disk}2
+echo "$CRYPTPASS1" | cryptsetup --label crypt --type luks2 --cipher aes-xts-plain64 --key-size 512 --hash sha512 --iter-time 1000 --use-random luksFormat /dev/${disk}2
 
 ### Open encrypted partition
 echo "Opening crypt partition..."
-echo "$CRYPTPASS1" | cryptsetup open --allow-discards --type luks ${disk}2 cryptroot
+echo "$CRYPTPASS1" | cryptsetup open --allow-discards --type luks /dev/${disk}2 cryptroot
 
 
 ### LVM Setup
 ### Make root partition into an LV group
 echo "creating logical volume group on root partition..."
-vgcreate cryptgroup ${disk}2 
+vgcreate cryptgroup /dev/${disk}2 
 echo "creating root logical volume..."
 lvcreate --name root -L 10G cryptgroup
 echo "creating swap logical volume..."
@@ -147,7 +147,7 @@ echo "creating home logical volume..."
 lvcreate --name home -l 80%FREE cryptgroup
 
 echo "Creating EFI filesystem FAT32..."
-mkfs.fat -F 32 -n EFI ${disk}1
+mkfs.fat -F 32 -n EFI /dev/${disk}1
 #mkfs.ext4 -L ROOT /dev/mapper/cryptroot
 
 echo "creating root filesystem ext4..."
@@ -170,5 +170,5 @@ mount /dev/cryptgroup/home /mnt/home
 # since the intention is to use an EFI stub for boot, only create a /mnt/boot folder and mount to EFI partition
 echo "mounting EFI stub directory..."
 mkdir -p /mnt/boot/efi
-mount ${disk}1 /mnt/boot/efi
+mount /dev/${disk}1 /mnt/boot/efi
 
