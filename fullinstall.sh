@@ -206,6 +206,24 @@ chroot /mnt useradd -m -G wheel,audio,video,cdrom,optical,storage,kvm,input,plug
 chroot /mnt chpasswd <<< "$USER:$PASS1"
 chroot /mnt sed -i 's/^# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers
 
+##### TO DO
+### 1. determine if fstab needs UUIDs to be fixed in the file
+### 2. setup crypttab
+### 3. setup rEFInd and EFI stub for boot
+### 4. begin dracut setup to create UKI
+
+
+###################################################
+##### dracut configuration and UKI generation #####
+###################################################
+#
+
+
+###################################################
+##### Boot options: EFI stub and rEFInd ###########
+###################################################
+#
+
 
 ###############################################
 ##### Secure boot setup and TPM enrolment #####
@@ -213,9 +231,9 @@ chroot /mnt sed -i 's/^# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /et
 #
 
 
-#####################################################
-##### Moving system scripts (copying /etc files #####
-#####################################################
+######################################################
+##### Moving system scripts (copying /etc files) #####
+######################################################
 #
 
 
