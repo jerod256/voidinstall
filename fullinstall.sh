@@ -128,11 +128,11 @@ parted -s /dev/${disk} set 1 esp on
 
 ### Encrypt root partition
 echo "Encrypt root partition with LUKS2 aes-512..."
-echo "$CRYPTPASS1" | cryptsetup --label crypt --type luks2 --cipher aes-xts-plain64 --key-size 512 --hash sha512 --iter-time 1000 --use-random luksFormat /dev/${disk}2 -
+echo "$CRYPTPASS1" | cryptsetup --label crypt --type luks2 --cipher aes-xts-plain64 --key-size 512 --hash sha512 --iter-time 1000 --use-random luksFormat /dev/${disk}2
 
 ### Open encrypted partition
 echo "Opening crypt partition..."
-echo "$CRYPTPASS1" | cryptsetup open --allow-discards --type luks /dev/${disk}2 cryptroot -
+echo "$CRYPTPASS1" | cryptsetup open --allow-discards --type luks /dev/${disk}2 cryptroot
 
 
 ### LVM Setup
