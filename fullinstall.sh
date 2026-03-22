@@ -13,12 +13,11 @@
 ### Sources used for creating this script: man-pages, void linux manual, and https://github.com/dylanbegin/void-install.git
 
 ### The target system will have the following installation features and qualities
-### Root, home and swap (partition) in an LVM on a LUKS2 partition
-### An EFI partition containing a UKI
-### Target system is assumed to have capabilities for EFI stub, Secure boot and a TPM2 chip and use will be made of these features
+### a single volume inside a LUKS2 partition, ZRAM and swapfile will be used for swap
+### An EFI partition containining the kernel and initramfs images
+### limine bootloader
 
-### This version will not have EFI stub, UKI, Secure boot or TPM2.
-### This is so I can work out a baseline installation and get to desktop faster.
+### EFI Stub, secure boot and TPM2 unlock would be nice, but to simplify the installation process. that will be left to post-installation to simplify this installation script
 
 ### to run this script, run the following manually:
 ### # mkdir /install
@@ -47,12 +46,12 @@ default_CRYPTPASS="56789"
 ### packages to be loaded into the live session for installation (seems to be required manually before this script is run)
 #pkg_preinst="parted git"
 #package list for basic system setup
-#rEFInd is added just in case. can be removed later if the EFI is enrolled properly and boot works
-pkg_base="base-system cryptsetup efibootmgr nftables sbctl vim git lvm2 grub-x86_64-efi sbsigntool efitools tpm2-tools"
+#pkg_base="base-system cryptsetup efibootmgr nftables sbctl vim git lvm2 grub-x86_64-efi sbsigntool efitools tpm2-tools"
+pkg_base="base-system cryptsetup nftables vim git limine efibootmgr"
 ### package list for system utilities, daemons, drivers, etc
-pkg_sysutils="NetworkManager greetd tuigreet tlp base-devel bluez git wget curl git btop udisks2 ufw"
+pkg_sysutils="ntpd connman cronie greetd tuigreet tlp base-devel bluez git wget curl btop udisks2 ufw"
 ### package list for graphical desktop environment
-pkg_gui="seatd pipewire wireplumber xdg_desktop_portal_wlroots polkit dbus fuzzel wl-clipboard swaybg waybar swaylock swayidle grim slurp wiremix bluetui nwg-look nwg-drawer kitty foot ffmpeg firefox qutebrowser bemenu"
+pkg_gui="seatd pipewire wireplumber xdg_desktop_portal_wlroots polkit dbus fuzzel wl-clipboard swaybg waybar swaylock swayidle grim slurp wiremix bluetui nwg-look nwg-drawer kitty foot ffmpeg firefox qutebrowser apparmor"
 
 ### gathers information
 ### 1. target disk label
@@ -141,43 +140,59 @@ echo "$CRYPTPASS1" | cryptsetup open --allow-discards --type luks /dev/${disk}2 
 
 ### LVM Setup
 ### Make root partition into an LV group
-echo "creating logical volume group on root partition..."
-vgcreate cryptgroup /dev/mapper/cryptroot 
-echo "creating root logical volume..."
-lvcreate --name root -L 10G cryptgroup
-echo "creating swap logical volume..."
-lvcreate --name swap -L 4G cryptgroup
-echo "creating home logical volume..."
-lvcreate --name home -l 80%FREE cryptgroup
+#echo "creating logical volume group on root partition..."
+#vgcreate cryptgroup /dev/mapper/cryptroot 
+#echo "creating root logical volume..."
+#lvcreate --name root -L 10G cryptgroup
+#echo "creating swap logical volume..."
+#lvcreate --name swap -L 4G cryptgroup
+#echo "creating home logical volume..."
+#lvcreate --name home -l 80%FREE cryptgroup
 
-echo "Creating EFI filesystem FAT32..."
-mkfs.fat -F 32 -n EFI /dev/${disk}1
+#echo "Creating EFI filesystem FAT32..."
+#mkfs.fat -F 32 -n EFI /dev/${disk}1
 #mkfs.ext4 -L ROOT /dev/mapper/cryptroot
 
-echo "creating root filesystem ext4..."
-mkfs.ext4 -L root /dev/cryptgroup/root
-echo "creating swap filesystem..."
-mkswap /dev/cryptgroup/swap
-echo "mounting swap volume..."
-swapon /dev/cryptgroup/swap
-echo "creating home filesystem ext4..."
-mkfs.ext4 -L home /dev/cryptgroup/home
+#echo "creating root filesystem ext4..."
+#mkfs.ext4 -L root /dev/cryptgroup/root
+#echo "creating swap filesystem..."
+#mkswap /dev/cryptgroup/swap
+#echo "mounting swap volume..."
+#swapon /dev/cryptgroup/swap
+#echo "creating home filesystem ext4..."
+#mkfs.ext4 -L home /dev/cryptgroup/home
 
 ### mount root and home
-echo "mounting root to target filesystem..."
-mount /dev/cryptgroup/root /mnt
+#echo "mounting root to target filesystem..."
+#mount /dev/cryptgroup/root /mnt
 
-echo "mounting home to target filesystem..."
-mkdir -p /mnt/home
-mount /dev/cryptgroup/home /mnt/home
+#echo "mounting home to target filesystem..."
+#mkdir -p /mnt/home
+#mount /dev/cryptgroup/home /mnt/home
 
 # since the intention is to use an EFI stub for boot, only create a /mnt/boot folder and mount to EFI partition
+#echo "mounting EFI stub directory..."
+#mkdir -p /mnt/boot/efi
+#mount /dev/${disk}1 /mnt/boot/efi
+### END OF LVM SETUP
+
+# mount the LUKS volume
+echo "creating root filesystem..."
+mkfs.ext4 /dev/mapper/cryptroot
+echo "mounting root filesystem..."
+mount /dev/mapper/cryptroot /mnt
+
+# mount the FAT32 /boot outside the LUKS partition
+echo "Creating EFI filesystem FAT32..."
+mkfs.fat -F 32 -n EFI /dev/${disk}1
 echo "mounting EFI stub directory..."
 mkdir -p /mnt/boot/efi
-mount /dev/${disk}1 /mnt/boot/efi
+mount /dev/${disk}1 /mnt/boot
 
 
-###### TO TEST NEXT
+
+### copy over system /etc files for configuration later
+cp -rf /install/voidinstall_secure/etc /mnt/
 
 ### make the folder for the xbps keys and copy them over
 echo "copying over xbps keys"
@@ -197,7 +212,7 @@ xgenfstab /mnt > /mnt/etc/fstab
 chroot /mnt chown root:root /
 chroot /mnt chmod 755 /
 chroot /mnt chpasswd <<< "root:$PASS1"
-echo voidlap > /mnt/etc/hostname
+echo "voidlap" > /mnt/etc/hostname
 
 ### set locales and languages
 echo "LANG=en_US.UTF-8" > /mnt/etc/local.conf
@@ -211,41 +226,22 @@ chroot /mnt sed -i 's/^# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /et
 
 ##### TO DO
 ### 1. determine if fstab needs UUIDs to be fixed in the file
-### 2. setup crypttab
-### 3. setup GRUB
-### 4. begin dracut setup
+### 3. setup limine
+##### a. cmdline: rd.luks.uuid=UUID_OF_LUKS_PARTITION rd.luks.allow-discards root=/dev/mapper/cryptroot rw loglevel=7
+##### b. getting the LUKS UUID LUKS_UUID=$(blkid -s UUID -o value /dev/nvme0n1p2)
+##### c. look at this for installing limine: https://www.reddit.com/r/voidlinux/comments/1px4cxz/guide_limine_on_void_linux_guide/
 ### 5. populate greetd config
+### 6. don't forget to set allowing discards in fstab
+### 7. firmware installation
+### 8. setup fish shell - perhaps do in post-install
 
-
-###################################################
-##### dracut configuration and UKI generation #####
-##### for now do not do UKI #######################
-###################################################
-#
-###
 
 
 #####################################################
-##### Boot options: EFI stub and GRUB ###############
-##### For now, just setup GRUB and not EFI Stub #####
+##### Boot options: limine bootloader ###############
 #####################################################
 #
-### GRUB setup
-
-
-###############################################
-##### Secure boot setup and TPM enrolment #####
-##### Leave for now ###########################
-###############################################
-#
-###
-
-
-######################################################
-##### Moving system scripts (copying /etc files) #####
-######################################################
-#
-### Start with greetd config
+### limine setup
 
 
 ################################################
@@ -253,13 +249,46 @@ chroot /mnt sed -i 's/^# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /et
 ################################################
 #
 ###
+### Running List of services and daemons
+### 1. nftables and ufw
+### 2. connman
+### 3. cronie
+### 4. apparmor
+### 5. bluetooth
+### 6. nvme trim
+### 7. tlpd
+### 8. dbus
+### 9. seatd
+### 10. xdg_desktop_portal
+### 11. polkit
 
 
 #####################################################################
-##### Setup user space, displayer services and shell interfaces #####
+##### Setup user space, display services and shell interfaces #######
 #####################################################################
 #
 ### Setup Display Server greetd
+
+
+#####################################################################
+##### Kernel Upgrade and setting kernel parameters###################
+#####################################################################
+#
+###
+
+
+#####################################################################
+##### Setup swap file and zram ######################################
+#####################################################################
+#
+###
+
+
+
+##### Finilize installation
+#chroot /mnt xbps-reconfigure -fa
+#umount -R /mnt
+
 
 
 ### a temporary block of code to make sure entries are properly captured
@@ -275,3 +304,24 @@ unset PASS1
 unset PASS2
 unset CRYPTPASS1
 unset CRYPTPASS2
+
+### FOR NEXT TEST - CHECK:
+### 1. /mnt/etc folder created and populated correctly
+### 2. /mnt/etc/fstab contains UUID of disk otherwise upgrade script to insert the proper UUID
+
+### snippet for creating a limine.conf
+#TARGET_UUID=$(blkid -s UUID -o value /dev/nvme0n1p2) # Your LUKS partition
+
+#cat <<EOF > /mnt/boot/limine.conf
+#timeout: 5
+#verbose: yes
+
+#:Void Linux (Encrypted)
+#    protocol: linux
+#    path: boot:///vmlinuz-$(uname -r)
+#    module_path: boot:///initramfs-$(uname -r).img
+#    cmdline: rd.luks.uuid=$TARGET_UUID rd.luks.allow-discards root=/dev/mapper/voidroot rw loglevel=7
+#EOF
+
+### List of things to move to post install:
+### 1. fish shell
