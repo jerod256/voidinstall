@@ -22,7 +22,7 @@
 ### to run this script, run the following manually:
 ### # mkdir /install
 ### # cd /install
-### # xbps-install -Sfu xbps
+### # xbps-install -Sfyu xbps
 ### # xbps-install -Sfy parted git vim efibootmgr #vim is for checking scripts
 ### # git clone https://github.com/jerod256/voidinstall_secure.git
 ### # cd voidinstall_secure
@@ -194,7 +194,7 @@ mount /dev/${disk}1 /mnt/boot
 
 
 ### copy over system /etc files for configuration later
-cp -rf /root/install/voidinstall_secure/etc /mnt/
+cp -rf /install/voidinstall_secure/etc /mnt/
 
 ### make the folder for the xbps keys and copy them over
 echo "copying over xbps keys"
@@ -255,8 +255,8 @@ verbose: yes
 
 /Void Linux (Encrypted)
     protocol: linux
-    path: boot():/vmlinuz-$(uname -r)
-    module_path: boot():/initramfs-$(uname -r).img
+    path: boot():/vmlinuz
+    module_path: boot():/initramfs.img
     cmdline: rd.luks.uuid=$TARGET_UUID rd.luks.allow-discards root=/dev/mapper/cryptroot rw loglevel=7
 EOF
 
@@ -310,7 +310,8 @@ efibootmgr --create --label "Void Linux" --loader '\EFI\limine\BOOTX64.EFI' --di
 
 
 ##### Finilize installation
-#chroot /mnt xbps-reconfigure -fa
+echo "UPDATE_SYMLINKS=yes" >> /mnt/etc/default/kernel
+chroot /mnt xbps-reconfigure -fa
 #umount -R /mnt
 
 
@@ -335,24 +336,11 @@ unset CRYPTPASS2
 ### 3. check that limine EFI file is in /mnt/boot/EFI/limine/
 ### 4. check EFI boot entries with # chroot /mnt efibootmgr -v
 
-### snippet for creating a limine.conf
-#TARGET_UUID=$(blkid -s UUID -o value /dev/nvme0n1p2) # Your LUKS partition
-
-#cat <<EOF > /mnt/boot/limine.conf
-#timeout: 5
-#verbose: yes
-
-#:Void Linux (Encrypted)
-#    protocol: linux
-#    path: boot:///vmlinuz-$(uname -r)
-#    module_path: boot:///initramfs-$(uname -r).img
-#    cmdline: rd.luks.uuid=$TARGET_UUID rd.luks.allow-discards root=/dev/mapper/voidroot rw loglevel=7
-#EOF  
-
-# place /mnt/usr/share/limine/BOOTX64.EFI in /mnt/boot/EFI/limine/
-# use efibootmgr # efibootmgr --create --label "Void Linux" --loader '\EFI\limine\BOOTX64.EFI' --disk <ACTUAL_DISK> --part 1
 
 ### List of things to move to post install:
 ### 1. fish shell
 
 } 2>&1 | tee /root/void-install/install.log
+mkdir -p /mnt/etc/install_log/
+cp /root/void-install/install.log /mnt/etc/install_.log
+#umount -R /mnt
