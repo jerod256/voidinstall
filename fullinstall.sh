@@ -29,6 +29,7 @@
 ### # chmod +x fullinstall.sh
 ### # ./fullinstall.sh
 
+mkdir -p /root/void-install/
 touch /root/void-install/install.log
 {
 ### set global variables
