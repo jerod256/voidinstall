@@ -23,7 +23,7 @@
 ### # mkdir /install
 ### # cd /install
 ### # xbps-install -Sfu xbps
-### # xbps-install -Sfy parted git vim #vim is for checking scripts
+### # xbps-install -Sfy parted git vim efibootmgr #vim is for checking scripts
 ### # git clone https://github.com/jerod256/voidinstall_secure.git
 ### # cd voidinstall_secure
 ### # chmod +x fullinstall.sh
@@ -243,6 +243,28 @@ chroot /mnt sed -i 's/^# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /et
 #
 ### limine setup
 
+### first get the UUID of the physical root partition (holds encrypted root cryptroot inside)
+TARGET_UUID=$(blkid -s UUID -o value /dev/${disk}2)
+
+### then create the limine config file which includes the kernel command line
+cat <<EOF > /mnt/boot/limine.conf
+timeout: 5
+verbose: yes
+
+/Void Linux (Encrypted)
+    protocol: linux
+    path: boot():/vmlinuz-$(uname -r)
+    module_path: boot():/initramfs-$(uname -r).img
+    cmdline: rd.luks.uuid=$TARGET_UUID rd.luks.allow-discards root=/dev/mapper/cryptroot rw loglevel=7
+EOF  
+
+### then place the limine EFI image into the correct folder in the /boot partition so the BIOS knows how to find limine
+mkdir -r /mnt/boot/EFI/limine/
+cp /mnt/usr/share/limine/BOOTX64.EFI /mnt/boot/EFI/limine/
+
+### then use the efibootmgr tool to make an entry in the BIOS for limine
+efibootmgr --create --label "Void Linux" --loader '\EFI\limine\BOOTX64.EFI' --disk /dev/${disk} --part 1
+
 
 ################################################
 ##### Setup Services, Daemons and Security #####
@@ -308,6 +330,8 @@ unset CRYPTPASS2
 ### FOR NEXT TEST - CHECK:
 ### 1. /mnt/etc folder created and populated correctly
 ### 2. /mnt/etc/fstab contains UUID of disk otherwise upgrade script to insert the proper UUID
+### 3. check that limine EFI file is in /mnt/boot/EFI/limine/
+### 4. check EFI boot entries with # chroot /mnt efibootmgr -v
 
 ### snippet for creating a limine.conf
 #TARGET_UUID=$(blkid -s UUID -o value /dev/nvme0n1p2) # Your LUKS partition
