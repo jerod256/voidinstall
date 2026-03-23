@@ -256,8 +256,8 @@ verbose: yes
 
 /Void Linux (Encrypted)
     protocol: linux
-    path: boot():/vmlinuz
-    module_path: boot():/initramfs.img
+    path: boot():/vmlinuz-6.12.77_1
+    module_path: boot():/initramfs-6.12.77_1.img
     cmdline: rd.luks.uuid=$TARGET_UUID rd.luks.name=$TARGET_UUID=cryptroot root=/dev/mapper/cryptroot rd.luks.allow-discards rw loglevel=7
 EOF
 
