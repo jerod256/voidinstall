@@ -49,11 +49,11 @@ default_CRYPTPASS="56789"
 #pkg_preinst="parted git"
 #package list for basic system setup
 #pkg_base="base-system cryptsetup efibootmgr nftables sbctl vim git lvm2 grub-x86_64-efi sbsigntool efitools tpm2-tools"
-pkg_base="base-system cryptsetup nftables vim git limine efibootmgr"
+pkg_base="base-system cryptsetup nftables vim git limine efibootmgr seatd bluez pipewire wireplumber"
 ### package list for system utilities, daemons, drivers, etc
-pkg_sysutils="ntpd connman cronie greetd tuigreet tlp base-devel bluez git wget curl btop udisks2 ufw"
+pkg_sysutils="ntpd connman cronie greetd tuigreet tlp base-devel wget curl btop udisks2 ufw"
 ### package list for graphical desktop environment
-pkg_gui="seatd pipewire wireplumber xdg_desktop_portal_wlroots polkit dbus fuzzel wl-clipboard swaybg waybar swaylock swayidle grim slurp wiremix bluetui nwg-look nwg-drawer kitty foot ffmpeg firefox qutebrowser apparmor"
+pkg_gui="xdg_desktop_portal_wlroots polkit dbus fuzzel wl-clipboard swaybg waybar swaylock swayidle grim slurp wiremix bluetui nwg-look nwg-drawer kitty foot ffmpeg firefox qutebrowser apparmor"
 
 ### gathers information
 ### 1. target disk label
@@ -261,7 +261,7 @@ verbose: yes
 EOF
 
 ### then place the limine EFI image into the correct folder in the /boot partition so the BIOS knows how to find limine
-mkdir -r /mnt/boot/EFI/limine/
+mkdir -p /mnt/boot/EFI/limine/
 cp /mnt/usr/share/limine/BOOTX64.EFI /mnt/boot/EFI/limine/
 
 ### then use the efibootmgr tool to make an entry in the BIOS for limine
