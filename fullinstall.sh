@@ -257,7 +257,7 @@ verbose: yes
     protocol: linux
     path: boot():/vmlinuz
     module_path: boot():/initramfs.img
-    cmdline: rd.luks.uuid=$TARGET_UUID rd.luks.allow-discards root=/dev/mapper/cryptroot rw loglevel=7
+    cmdline: rd.luks.uuid=$TARGET_UUID rd.luks.name=$TARGET_UUID=cryptroot root=/dev/mapper/cryptroot rd.luks.allow-discards rw loglevel=7
 EOF
 
 ### then place the limine EFI image into the correct folder in the /boot partition so the BIOS knows how to find limine
