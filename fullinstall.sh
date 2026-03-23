@@ -123,7 +123,7 @@ parted -s -a optimal /dev/${disk} mkpart primary fat32 2048s $efi_size
 
 ### Create root partition
 echo "Creating linux partition on rest of free space..."
-parted -s -a optimal /dev/${disk} mkpart primary ext4 $efi_size 100%
+parted -s -a optimal /dev/${disk} mkpart primary ext4 $efi_size 20G
 
 ### Set esp flag on efi partition
 echo "Setting esp flag on EFI partition..."
@@ -192,7 +192,7 @@ mount /dev/${disk}1 /mnt/boot
 
 
 ### copy over system /etc files for configuration later
-cp -rf /install/voidinstall_secure/etc /mnt/
+cp -rf /root/install/voidinstall_secure/etc /mnt/
 
 ### make the folder for the xbps keys and copy them over
 echo "copying over xbps keys"
@@ -321,7 +321,10 @@ unset CRYPTPASS2
 #    path: boot:///vmlinuz-$(uname -r)
 #    module_path: boot:///initramfs-$(uname -r).img
 #    cmdline: rd.luks.uuid=$TARGET_UUID rd.luks.allow-discards root=/dev/mapper/voidroot rw loglevel=7
-#EOF
+#EOF  
+
+# place /mnt/usr/share/limine/BOOTX64.EFI in /mnt/boot/EFI/limine/
+# use efibootmgr # efibootmgr --create --label "Void Linux" --loader '\EFI\limine\BOOTX64.EFI' --disk <ACTUAL_DISK> --part 1
 
 ### List of things to move to post install:
 ### 1. fish shell
