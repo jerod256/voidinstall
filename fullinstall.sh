@@ -29,6 +29,8 @@
 ### # chmod +x fullinstall.sh
 ### # ./fullinstall.sh
 
+touch /root/void-install/install.log
+{
 ### set global variables
 arch=x86_64
 mirror="https://repo-default.voidlinux.org/current"
@@ -256,7 +258,7 @@ verbose: yes
     path: boot():/vmlinuz-$(uname -r)
     module_path: boot():/initramfs-$(uname -r).img
     cmdline: rd.luks.uuid=$TARGET_UUID rd.luks.allow-discards root=/dev/mapper/cryptroot rw loglevel=7
-EOF  
+EOF
 
 ### then place the limine EFI image into the correct folder in the /boot partition so the BIOS knows how to find limine
 mkdir -r /mnt/boot/EFI/limine/
@@ -352,3 +354,5 @@ unset CRYPTPASS2
 
 ### List of things to move to post install:
 ### 1. fish shell
+
+} 2>&1 | tee /root/void-install/install.log
