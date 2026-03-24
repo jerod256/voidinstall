@@ -312,13 +312,6 @@ efibootmgr --create --label "Void Linux" --loader '\EFI\limine\BOOTX64.EFI' --di
 
 
 
-##### Finilize installation
-echo "UPDATE_SYMLINKS=yes" >> /mnt/etc/default/kernel
-chroot /mnt xbps-reconfigure -fa
-#umount -R /mnt
-
-
-
 ### a temporary block of code to make sure entries are properly captured
 echo $PASS1
 echo $USER
@@ -346,4 +339,11 @@ unset CRYPTPASS2
 } 2>&1 | tee /root/void-install/install.log
 mkdir -p /mnt/etc/install_log/
 cp /root/void-install/install.log /mnt/etc/install_.log
-#umount -R /mnt
+
+### to finish installation run manually
+### chroot in
+### # xchroot /mnt
+### [xchroot /mnt] # passwd jerec
+### [xchroot /mnt] # exit
+### chroot /mnt xbps-reconfigure -fa
+### #umount -R /mnt
