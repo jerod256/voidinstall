@@ -5,10 +5,10 @@
 ### License: GPL-2.0		   ###
 ######################################
 
-### This script will do a fully guided installation of void linux from the command line
+### This script will do a fully automated installation of void linux from the command line
 ### it is meant to be run from a live installation image of void linux
 ### this script was designed and tested with the void linux image released in 2025 and assumes Linux 6.12
-
+### it seems that there's issues with setting a user password from chroot wrapper automated commands. so it will have to be done after installing with a quick chrooting in and setting it before rebooting
 ### This script is a work in progress, use at your own risk. It is not supported. Issues will be ignored.
 ### Sources used for creating this script: man-pages, void linux manual, and https://github.com/dylanbegin/void-install.git
 
@@ -51,8 +51,6 @@ default_CRYPTPASS="56789"
 #package list for basic system setup
 #pkg_base="base-system cryptsetup efibootmgr nftables sbctl vim git lvm2 grub-x86_64-efi sbsigntool efitools tpm2-tools"
 pkg_base="base-system cryptsetup nftables vim git limine efibootmgr seatd bluez pipewire wireplumber greetd tuigreet ufw base-devel tlp tlpd wget curl btop udisks2ntpd connman cronie dbus"
-### package list for graphical desktop environment
-pkg_gui="xdg_desktop_portal_wlroots polkit fuzzel wl-clipboard swaybg waybar swaylock swayidle grim slurp wiremix bluetui nwg-look nwg-drawer kitty foot ffmpeg firefox qutebrowser firejail mesa"
 
 ### gathers information
 ### 1. target disk label
@@ -227,18 +225,6 @@ echo "$USER:$PASS1" | chpasswd
 EOF
 chroot /mnt sed -i 's/^# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers
 
-##### TO DO
-### 1. determine if fstab needs UUIDs to be fixed in the file
-### 3. setup limine
-##### a. cmdline: rd.luks.uuid=UUID_OF_LUKS_PARTITION rd.luks.allow-discards root=/dev/mapper/cryptroot rw loglevel=7
-##### b. getting the LUKS UUID LUKS_UUID=$(blkid -s UUID -o value /dev/nvme0n1p2)
-##### c. look at this for installing limine: https://www.reddit.com/r/voidlinux/comments/1px4cxz/guide_limine_on_void_linux_guide/
-### 5. populate greetd config
-### 6. don't forget to set allowing discards in fstab
-### 7. firmware installation
-### 8. setup fish shell - perhaps do in post-install
-
-
 
 #####################################################
 ##### Boot options: limine bootloader ###############
@@ -276,15 +262,16 @@ efibootmgr --create --label "Void Linux" --loader '\EFI\limine\BOOTX64.EFI' --di
 ###
 ### Running List of services and daemons
 ### 1. nftables and ufw
-### 2. connman
 ### 3. cronie
 ### 5. bluetooth
-### 6. nvme trim cronie job probably
+### 6. nvme trim - cronie job probably
 ### 7. tlpd
 ### 8. dbus
+### 8.5. connman
 ### 9. seatd
 ### 10. xdg_desktop_portal
 ### 11. polkit
+### 12. ensure network services are available upon reboot
 
 
 #####################################################################
