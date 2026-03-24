@@ -224,7 +224,9 @@ chroot /mnt xbps-reconfigure -f glibc-locales
 
 ### setup primary user
 chroot /mnt useradd -m -G wheel,audio,video,cdrom,optical,storage,kvm,input,plugdev,users,xbuilder,bluetooth,_pipewire,_seatd -s /bin/bash $USER
-chroot /mnt chpasswd <<< "$USER:$PASS1"
+chroot /mnt /bin/bash <<EOF
+echo "$USER:$PASS1" | chpasswd
+EOF
 chroot /mnt sed -i 's/^# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers
 
 ##### TO DO
