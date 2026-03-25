@@ -18,12 +18,17 @@
 ### limine bootloader
 
 ### This script will setup:
-### 1. services and enable them
+### 1. verify service startup
+### 1.25. verify internet connection and connection to repos
 ### 1.5. a system update from through the package manager from the repos
 ### 2. upgrade the kernel and make a bootloader entry for the new kernel
 ### 3. tweak kernel parameters to optimize for a desktop workspace
+### 3.25. setup zswap (not zram)
 ### 3.5. install the interactive fish shell for the user
+### 3.75. start cronie job for trimming drive
 ### 4. install a graphical environment
+### 5. install dotfiles for graphical environment
+### 6. make sure graphical environment starts up xdg_desktop_portal_wlroots and polkitagent
 
 ### Another reboot will be required to make use of the kernel upgrade
 

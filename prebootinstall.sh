@@ -1,9 +1,10 @@
 #!/bin/bash
-######################################
-### Secure Void Linux Installation ###
-### by: Liz Boudreau		   ###
-### License: GPL-2.0		   ###
-######################################
+################################################
+### Secure Void Linux Installation 	     ###
+### Stage Zero Disk prep and preboot install ###
+### by: Liz Boudreau		   	     ###
+### License: GPL-2.0		   	     ###
+################################################
 
 ### This script will do a fully automated installation of void linux from the command line
 ### it is meant to be run from a live installation image of void linux
@@ -50,7 +51,12 @@ default_CRYPTPASS="56789"
 #pkg_preinst="parted git"
 #package list for basic system setup
 #pkg_base="base-system cryptsetup efibootmgr nftables sbctl vim git lvm2 grub-x86_64-efi sbsigntool efitools tpm2-tools"
-pkg_base="base-system cryptsetup nftables vim git limine efibootmgr seatd bluez pipewire wireplumber greetd tuigreet ufw base-devel tlp tlpd wget curl btop udisks2ntpd connman cronie dbus"
+pkg_base="base-system cryptsetup nftables vim git limine efibootmgr seatd bluez pipewire wireplumber greetd tuigreet ufw base-devel tlp tlp-pd wget curl btop udisks2 connman cronie dbus socklog-void ntp"
+### for gaming distro adjust package list to:
+### consider doing away with greetd and tuigreet and use auto start scripts (like xinitrc).
+### use dhcpcd if desktop and remove connman.
+### remove bluez.
+### remove tlp and tlp-pd if desktop
 
 ### gathers information
 ### 1. target disk label
@@ -120,9 +126,15 @@ parted -s /dev/${disk} mklabel gpt
 echo "Creating $disk EFI partition..."
 parted -s -a optimal /dev/${disk} mkpart primary fat32 2048s $efi_size
 
+start_efipos=$(numfmt --from=iec $efi_size)
+size2add=$(numfmt --from=iec 20G)
+
+endpos_byte=$((start_efipos + size2add))
+endpos=$(numfmt --to=iec $endpos_byte)
+
 ### Create root partition
 echo "Creating linux partition on rest of free space..."
-parted -s -a optimal /dev/${disk} mkpart primary ext4 $efi_size 20G
+parted -s -a optimal /dev/${disk} mkpart primary ext4 $efi_size $endpos
 
 ### Set esp flag on efi partition
 echo "Setting esp flag on EFI partition..."
@@ -137,7 +149,7 @@ echo "Opening crypt partition..."
 echo "$CRYPTPASS1" | cryptsetup open --allow-discards --type luks /dev/${disk}2 cryptroot
 
 
-### LVM Setup
+### LVM Setup - a legacy implementation discarded as overcomplicating and not needed for my purposes
 ### Make root partition into an LV group
 #echo "creating logical volume group on root partition..."
 #vgcreate cryptgroup /dev/mapper/cryptroot 
@@ -188,7 +200,14 @@ echo "mounting EFI stub directory..."
 mkdir -p /mnt/boot/efi
 mount /dev/${disk}1 /mnt/boot
 
-
+##### SWAP Setup
+### Swap file setup
+### create empty swap file
+dd if=/dev/zero of=/mnt/swapfile bs=1M count=6144
+mkswap /mnt/swapfile
+chmod 0600 /mnt/swapfile
+swapon /mnt/swapfile
+### zswap setup - setting up zswap in post boot setup since the intention is to install a new kernel, the zswap setup will be done then only for the new kernel
 
 ### copy over system /etc files for configuration later
 cp -rf /install/voidinstall_secure/etc /mnt/
@@ -203,15 +222,15 @@ echo "installing base system..."
 xbps-install -Sy -R $mirror -R $mirror_nonfree -r /mnt $pkg_base
 
 
-### generate the filesystem table
-echo "generating filesystem table..."
+### generate the filesystem tble
+echo "generting filesystem table..."
 xgenfstab /mnt > /mnt/etc/fstab
 
 ### set permissions for the root
 chroot /mnt chown root:root /
 chroot /mnt chmod 755 /
 chroot /mnt chpasswd <<< "root:$PASS1"
-echo "voidlap" > /mnt/etc/hostname
+echo $default_host > /mnt/etc/hostname
 
 ### set locales and languages
 echo "LANG=en_US.UTF-8" > /mnt/etc/local.conf
@@ -259,36 +278,24 @@ efibootmgr --create --label "Void Linux" --loader '\EFI\limine\BOOTX64.EFI' --di
 ##### Setup Services, Daemons and Security #####
 ################################################
 #
-###
-### Running List of services and daemons
-### 1. nftables and ufw
-### 3. cronie
-### 5. bluetooth
-### 6. nvme trim - cronie job probably
-### 7. tlpd
-### 8. dbus
-### 8.5. connman
-### 9. seatd
-### 10. xdg_desktop_portal
-### 11. polkit
-### 12. ensure network services are available upon reboot
+chroot /mnt ln -s /etc/sv/acpid /var/service/ #for laptop only
+chroot /mnt ln -s /etc/sv/bluetoothd /var/service/ #do not include for gaming distro
+chroot /mnt ln -s /etc/sv/dbus /var/service/
+chroot /mnt ln -s /etc/sv/ufw /var/service/
+chroot /mnt ln -s /etc/sv/tlp /var/service/ #for laptop only
+chroot /mnt ln -s /etc/sv/tlp-pd /var/service/ #for laptop only
+chroot /mnt ln -s /etc/sv/crond /var/service/
+chroot /mnt ln -s /etc/sv/connmand /var/service/ #for laptop, replace with dhcpcd for desktop
+chroot /mnt ln -s /etc/sv/seatd /var/service/
+chroot /mnt ln -s /etc/sv/greetd /var/service/ #consider not using for gaming
+chroot /mnt ln -s /etc/sv/socklog-unix /var/service/
+chroot /mnt ln -s /etc/sv/nanoklogd /var/service/
+crhoot /mnt ln -s /etc/sv/ntpd /var/service/
 
-
-#####################################################################
-##### Setup user space, display services and shell interfaces #######
-#####################################################################
-#
-### Setup Display Server greetd
-
-
-
-#####################################################################
-##### Setup swap file and zram ######################################
-#####################################################################
-#
-###
-
-
+### disable dhcpcd, iptables and nftables if enabled
+rm /var/service/dhcpcd #do not remove if desktop, instead enable
+rm /var/service/iptables
+rm /var/service/nftables
 
 ### a temporary block of code to make sure entries are properly captured
 echo $PASS1
@@ -304,12 +311,6 @@ unset PASS2
 unset CRYPTPASS1
 unset CRYPTPASS2
 
-### List of things to move to post install:
-### 1. fish shell
-### 2. kernel upgrade
-### 3. install desktop environment packages
-### 4. download dotfiles from github and install
-
 } 2>&1 | tee /root/void-install/install.log
 mkdir -p /mnt/etc/install_log/
 cp /root/void-install/install.log /mnt/etc/install_.log
@@ -321,3 +322,10 @@ cp /root/void-install/install.log /mnt/etc/install_.log
 ### [xchroot /mnt] # exit
 ### chroot /mnt xbps-reconfigure -fa
 ### #umount -R /mnt
+
+##### TO CHECK ON NEXT TEST
+### BEFORE REBOOT
+### 1. check that all services successfully linked
+### 2. check that services that are intended to be unlinked are unlinked
+### 3. check partition sizes and amount of unallocated space
+### 4. check that swapfile made it into the fstab
