@@ -32,5 +32,4 @@
 
 ### Another reboot will be required to make use of the kernel upgrade
 
-pkg_gui="xdg_desktop_portal_wlroots polkit fuzzel wl-clipboard swaybg waybar swaylock swayidle grim slurp wiremix bluetui nwg-look nwg-drawer kitty foot ffmpeg firefox qutebrowser firejail mesa fastfetch"
-
+pkg_gui_wl="xdg_desktop_portal_wlroots polkit fuzzel wl-clipboard swaybg waybar swaylock swayidle grim slurp wiremix bluetui kitty foot ffmpeg firefox qutebrowser firejail mesa fastfetch"

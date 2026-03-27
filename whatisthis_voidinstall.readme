@@ -1,0 +1,23 @@
+# this document describes the project in this folder
+# this project is in progress and this is an outline of the plan of what to build
+# this will be an installation script for installing Void Linux on a target partition
+# the following qualities will be for the installation:
+# 1. Target partition:
+#	a. ext4 filesystem
+#	b. single partition with root and home
+#	c. swapfile
+# 2. Target system: Lenovo 16AHP9 AMD APU laptop (CPU and GPU are both AMD)
+# 3. zswap
+# 4. unencrypted boot partition with limine bootloader
+# 5. options to:
+#	a. setup new bootloader or create entry in existing bootloader
+#	b. setup new partition table with a new partition or install to preexisting partition
+#	c. install on an encrypted partition or unencrypted partition
+# 6. Default desktop environment will be sway with waybar, fuzzel, and kitty
+
+# Completed:
+# 1. Partitioning commands, some setup may be required to allow for existing partitions to be installed on
+# 2. base system install
+# 3. working bootloader setup, for an encrypted partition
+
+# Note on old Asus-Nvidia laptop - some work may be done to adapt the scripts to setup a system properly on that laptop, without compromising the setup on the Lenovo-AMD laptop
