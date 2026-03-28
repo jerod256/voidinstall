@@ -25,8 +25,8 @@
 ### # cd /install
 ### # xbps-install -Sfyu xbps
 ### # xbps-install -Sfy parted git vim efibootmgr #vim is for checking scripts
-### # git clone https://github.com/jerod256/voidinstall_secure.git
-### # cd voidinstall_secure
+### # git clone https://github.com/jerod256/voidinstall.git
+### # cd voidinstall
 ### # chmod +x prebootinstall.sh
 ### # ./prebootinstall.sh
 
@@ -292,6 +292,7 @@ chroot /mnt ln -s /etc/sv/greetd /var/service/ #consider not using for gaming
 chroot /mnt ln -s /etc/sv/socklog-unix /var/service/
 chroot /mnt ln -s /etc/sv/nanoklogd /var/service/
 crhoot /mnt ln -s /etc/sv/ntpd /var/service/
+chroot /mnt ln -s /etc/sv/polkitd /var/service/
 
 ### disable dhcpcd, iptables and nftables if enabled
 rm /var/service/dhcpcd #do not remove if desktop, instead enable
@@ -330,3 +331,8 @@ cp /root/void-install/install.log /mnt/etc/install_.log
 ### 2. check that services that are intended to be unlinked are unlinked
 ### 3. check partition sizes and amount of unallocated space
 ### 4. check that swapfile made it into the fstab
+
+### to fix
+### 1. install partition size still wrong
+### 2. move service linking to post install
+### 3. locale didn't take for some reason

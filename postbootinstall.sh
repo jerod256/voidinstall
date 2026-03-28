@@ -32,4 +32,9 @@
 
 ### Another reboot will be required to make use of the kernel upgrade
 
-pkg_gui_wl="xdg_desktop_portal_wlroots polkit fuzzel wl-clipboard swaybg waybar swaylock swayidle grim slurp wiremix bluetui kitty foot ffmpeg firefox qutebrowser firejail mesa fastfetch"
+### add section for linking services
+
+pkg_gui_wl="xdg-desktop-portal-wlr wmenu wl-clipboard sway swaybg Waybar swaylock swayidle grim slurp wiremix bluetui kitty foot ffmpeg firefox qutebrowser firejail mesa fastfetch pam_rundir yazi mako"
+
+### add session for setting up pam_rundir and adding line:
+### '-session optional pam_rundir.so' /etc/pam.d/system-login
