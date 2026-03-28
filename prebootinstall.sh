@@ -41,6 +41,7 @@ mirror_nonfree="https://repo-default.voidlinux.org/current/nonfree"
 ### variables to be set (with defaults)
 default_disk="vda"
 default_efi_size="1024MiB"
+default_install_size="20G"
 LANG="en_US.UTF-8"
 default_host="laptop"
 default_USER="lizluv"
@@ -127,7 +128,7 @@ echo "Creating $disk EFI partition..."
 parted -s -a optimal /dev/${disk} mkpart primary fat32 2048s $efi_size
 
 start_efipos=$(numfmt --from=iec $efi_size)
-size2add=$(numfmt --from=iec 20G)
+size2add=$(numfmt --from=iec $default_install_size)
 
 endpos_byte=$((start_efipos + size2add))
 endpos=$(numfmt --to=iec $endpos_byte)
