@@ -39,9 +39,8 @@ mirror="https://repo-default.voidlinux.org/current"
 mirror_nonfree="https://repo-default.voidlinux.org/current/nonfree"
 
 ### variables to be set (with defaults)
-default_disk="vda"
-default_efi_size="1024MiB"
-default_install_size="30GiB"
+default_efi_name="vda1"
+default_install_name="vda2"
 LANG="en_US.UTF-8"
 default_host="laptop"
 default_USER="lizluv"
@@ -62,16 +61,14 @@ pkg_base="base-system cryptsetup nftables vim git limine efibootmgr seatd bluez 
 ### gathers information
 ### 1. target disk label
 lsblk
-echo -n "Enter the name of the target disk as shown above [leave blank for default]"
-read temp_disk
-disk="${temp_disk:-$default_disk}"
+echo -n "Enter the name of the target boot partition as shown above"
+read default_efi_name
 echo
 echo
 
-### 2. EFI partition size
-echo -n "Enter the size of the partition [leave blank for default]"
-read temp_efisize
-efi_size="${temp_efisize:-$default_efi_size}"
+### 2. EFI partition name
+echo -n "Enter the name of the target root partition as shown above"
+read default_install_name
 echo
 echo
 
@@ -116,38 +113,38 @@ done
 
 
 ### Enters into disk preparation:
-echo "Formatting the disk $disk..."
-dd if=/dev/zero of=/dev/${disk} bs=1M count=100
+#echo "Formatting the disk $disk..."
+#dd if=/dev/zero of=/dev/${disk} bs=1M count=100
 
 ### Create a new gpt partition table
-echo "Creating GPT partition table on $disk..."
-parted -s /dev/${disk} mklabel gpt
+#echo "Creating GPT partition table on $disk..."
+#parted -s /dev/${disk} mklabel gpt
 
 ### Create efi partition
-echo "Creating $disk EFI partition..."
-parted -s -a optimal /dev/${disk} mkpart primary fat32 2048s $efi_size
+#echo "Creating $disk EFI partition..."
+#parted -s -a optimal /dev/${disk} mkpart primary fat32 2048s $efi_size
 
-start_efipos=$(numfmt --from=iec $efi_size)
-size2add=$(numfmt --from=iec $default_install_size)
+#start_efipos=$(numfmt --from=iec $efi_size)
+#size2add=$(numfmt --from=iec $default_install_size)
 
-endpos_byte=$((start_efipos + size2add))
+#endpos_byte=$((start_efipos + size2add))
 #endpos=$(numfmt --to=iec $endpos_byte)
 
 ### Create root partition
-echo "Creating linux partition on rest of free space..."
-parted -s -a optimal /dev/${disk} mkpart primary ext4 $start_efipos $endpos_byte
+#echo "Creating linux partition on rest of free space..."
+#parted -s -a optimal /dev/${disk} mkpart primary ext4 $start_efipos $endpos_byte
 
 ### Set esp flag on efi partition
-echo "Setting esp flag on EFI partition..."
-parted -s /dev/${disk} set 1 esp on
+#echo "Setting esp flag on EFI partition..."
+#parted -s /dev/${disk} set 1 esp on
 
 ### Encrypt root partition
 echo "Encrypt root partition with LUKS2 aes-512..."
-echo "$CRYPTPASS1" | cryptsetup --label crypt --type luks2 --cipher aes-xts-plain64 --key-size 512 --hash sha512 --iter-time 1000 --use-random luksFormat /dev/${disk}2
+echo "$CRYPTPASS1" | cryptsetup --label crypt --type luks2 --cipher aes-xts-plain64 --key-size 512 --hash sha512 --iter-time 1000 --use-random luksFormat /dev/${default_install_name}
 
 ### Open encrypted partition
 echo "Opening crypt partition..."
-echo "$CRYPTPASS1" | cryptsetup open --allow-discards --type luks /dev/${disk}2 cryptroot
+echo "$CRYPTPASS1" | cryptsetup open --allow-discards --type luks /dev/${default_install_name} cryptroot
 
 
 ### LVM Setup - a legacy implementation discarded as overcomplicating and not needed for my purposes
@@ -196,10 +193,10 @@ mount /dev/mapper/cryptroot /mnt
 
 # mount the FAT32 /boot outside the LUKS partition
 echo "Creating EFI filesystem FAT32..."
-mkfs.fat -F 32 -n EFI /dev/${disk}1
+mkfs.fat -F 32 -n EFI /dev/${default_efi_name}
 echo "mounting EFI stub directory..."
 mkdir -p /mnt/boot/efi
-mount /dev/${disk}1 /mnt/boot
+mount /dev/${default_efi_name} /mnt/boot
 
 ##### SWAP Setup
 ### Swap file setup
