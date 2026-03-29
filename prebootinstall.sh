@@ -207,8 +207,6 @@ chmod 0600 /mnt/swapfile
 swapon /mnt/swapfile
 ### zswap setup - setting up zswap in post boot setup since the intention is to install a new kernel, the zswap setup will be done then only for the new kernel
 
-### copy over system /etc files for configuration later
-cp -rf /install/voidinstall/etc/* /mnt/etc/
 
 ### make the folder for the xbps keys and copy them over
 echo "copying over xbps keys"
@@ -242,6 +240,9 @@ echo "$USER:$PASS1" | chpasswd
 EOF
 chroot /mnt sed -i 's/^# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers
 
+### copy over system /etc files for configuration later
+cp -rf /install/voidinstall/etc/greetd/* /mnt/etc/
+cp -rf /install/voidinstall/etc/dracut.conf.d/* /mnt/etc/
 
 #####################################################
 ##### Boot options: limine bootloader ###############
@@ -269,7 +270,7 @@ mkdir -p /mnt/boot/EFI/limine/
 cp /mnt/usr/share/limine/BOOTX64.EFI /mnt/boot/EFI/limine/
 
 ### then use the efibootmgr tool to make an entry in the BIOS for limine
-efibootmgr --create --label "Void Linux" --loader '\EFI\limine\BOOTX64.EFI' --disk /dev/${disk} --part 1
+efibootmgr --create --label "Void Linux" --loader '\EFI\limine\BOOTX64.EFI' --disk /dev/${default_efi_name} --part 1
 
 ### a temporary block of code to make sure entries are properly captured
 echo $PASS1
@@ -296,3 +297,7 @@ cp /root/void-install/install.log /mnt/etc/install_.log
 ### [xchroot /mnt] # exit
 ### chroot /mnt xbps-reconfigure -fa
 ### #umount -R /mnt
+
+### to do
+### 1. fix efibootmgr command
+### 2. ensure /etc/ copy works
