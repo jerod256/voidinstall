@@ -41,7 +41,7 @@ mirror_nonfree="https://repo-default.voidlinux.org/current/nonfree"
 ### variables to be set (with defaults)
 default_disk="vda"
 default_efi_size="1024MiB"
-default_install_size="20G"
+default_install_size="30GiB"
 LANG="en_US.UTF-8"
 default_host="laptop"
 default_USER="lizluv"
