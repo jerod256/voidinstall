@@ -22,8 +22,9 @@
 ### 2. run $ git clone https://github.com/jerod256/voidinstall.git
 ### 3. cd voidinstall
 ### 4. chmod +x postbootinstall.sh
-### 5. make sure you read the postbootinstall.sh script, because the next part requires root access
-### 6. sudo ./postbootinstall.sh
+### 5. setup and start services dbus and connmand in that order
+### 6. make sure you read the postbootinstall.sh script, because the next part requires root access
+### 7. sudo ./postbootinstall.sh
 
 ### THIS SCRIPT ASSUMES THE TARGET SYSTEM IS CONNECTED TO THE INTERNET VIA ETHERNET
 
@@ -38,7 +39,7 @@
 ### 8. sets up a cron job to trim the SSDs
 
 ### package list for gui
-pkg_gui_wl="xdg-desktop-portal-wlr wmenu wl-clipboard sway swaybg Waybar swaylock swayidle grim slurp wiremix bluetui kitty foot ffmpeg firefox qutebrowser firejail mesa fastfetch pam_rundir yazi mako neovim fish"
+pkg_gui_wl="xdg-desktop-portal-wlr wmenu wl-clipboard sway swaybg Waybar swaylock swayidle grim slurp wiremix bluetui kitty foot ffmpeg firefox qutebrowser firejail mesa fastfetch pam_rundir yazi mako neovim fish-shell"
 ### package list for fonts
 pkg_fonts="dejavu-fonts-ttf xorg-fonts noto-fonts-ttf noto-fonts-cjk noto-fonts-emoji nerd-fonts"
 ### remove mesa and install nouveau for an nvidia GPU. this script will not deal with proprietary nvidia drivers
@@ -57,7 +58,7 @@ ln -s /etc/sv/ufw /var/service/
 ln -s /etc/sv/tlp /var/service/ #for laptop only
 ln -s /etc/sv/tlp-pd /var/service/ #for laptop only
 ln -s /etc/sv/crond /var/service/
-ln -s /etc/sv/connmand /var/service/ #for laptop, replace with dhcpcd for desktop
+#ln -s /etc/sv/connmand /var/service/ #for laptop, replace with dhcpcd for desktop
 ln -s /etc/sv/seatd /var/service/
 ln -s /etc/sv/greetd /var/service/ #consider not using for gaming
 ln -s /etc/sv/socklog-unix /var/service/
@@ -113,8 +114,8 @@ EOF
 chmod u+x /etc/cron.weekly/fstrim
 
 ### setting up fish as the default shell
-command -v fish | sudo tee -a /etc/shells
-chsh -s "$(command -v fish)"
+#command -v fish | sudo tee -a /etc/shells
+#chsh -s "$(command -v fish)" jerec
 
 ### Do later because of the complexity and/or risks:
 ### 1. Kernel update
