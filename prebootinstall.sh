@@ -274,31 +274,6 @@ cp /mnt/usr/share/limine/BOOTX64.EFI /mnt/boot/EFI/limine/
 ### then use the efibootmgr tool to make an entry in the BIOS for limine
 efibootmgr --create --label "Void Linux" --loader '\EFI\limine\BOOTX64.EFI' --disk /dev/${disk} --part 1
 
-
-################################################
-##### Setup Services, Daemons and Security #####
-################################################
-#
-chroot /mnt ln -s /etc/sv/acpid /var/service/ #for laptop only
-chroot /mnt ln -s /etc/sv/bluetoothd /var/service/ #do not include for gaming distro
-chroot /mnt ln -s /etc/sv/dbus /var/service/
-chroot /mnt ln -s /etc/sv/ufw /var/service/
-chroot /mnt ln -s /etc/sv/tlp /var/service/ #for laptop only
-chroot /mnt ln -s /etc/sv/tlp-pd /var/service/ #for laptop only
-chroot /mnt ln -s /etc/sv/crond /var/service/
-chroot /mnt ln -s /etc/sv/connmand /var/service/ #for laptop, replace with dhcpcd for desktop
-chroot /mnt ln -s /etc/sv/seatd /var/service/
-chroot /mnt ln -s /etc/sv/greetd /var/service/ #consider not using for gaming
-chroot /mnt ln -s /etc/sv/socklog-unix /var/service/
-chroot /mnt ln -s /etc/sv/nanoklogd /var/service/
-crhoot /mnt ln -s /etc/sv/ntpd /var/service/
-chroot /mnt ln -s /etc/sv/polkitd /var/service/
-
-### disable dhcpcd, iptables and nftables if enabled
-rm /var/service/dhcpcd #do not remove if desktop, instead enable
-rm /var/service/iptables
-rm /var/service/nftables
-
 ### a temporary block of code to make sure entries are properly captured
 echo $PASS1
 echo $USER
