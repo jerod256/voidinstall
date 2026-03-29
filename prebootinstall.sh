@@ -131,11 +131,11 @@ start_efipos=$(numfmt --from=iec $efi_size)
 size2add=$(numfmt --from=iec $default_install_size)
 
 endpos_byte=$((start_efipos + size2add))
-endpos=$(numfmt --to=iec $endpos_byte)
+#endpos=$(numfmt --to=iec $endpos_byte)
 
 ### Create root partition
 echo "Creating linux partition on rest of free space..."
-parted -s -a optimal /dev/${disk} mkpart primary ext4 $efi_size $endpos
+parted -s -a optimal /dev/${disk} mkpart primary ext4 $start_efipos $endpos_byte
 
 ### Set esp flag on efi partition
 echo "Setting esp flag on EFI partition..."
@@ -324,15 +324,3 @@ cp /root/void-install/install.log /mnt/etc/install_.log
 ### [xchroot /mnt] # exit
 ### chroot /mnt xbps-reconfigure -fa
 ### #umount -R /mnt
-
-##### TO CHECK ON NEXT TEST
-### BEFORE REBOOT
-### 1. check that all services successfully linked
-### 2. check that services that are intended to be unlinked are unlinked
-### 3. check partition sizes and amount of unallocated space
-### 4. check that swapfile made it into the fstab
-
-### to fix
-### 1. install partition size still wrong
-### 2. move service linking to post install
-### 3. locale didn't take for some reason

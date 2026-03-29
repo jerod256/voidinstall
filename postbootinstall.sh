@@ -38,3 +38,10 @@ pkg_gui_wl="xdg-desktop-portal-wlr wmenu wl-clipboard sway swaybg Waybar swayloc
 
 ### add session for setting up pam_rundir and adding line:
 ### '-session optional pam_rundir.so' /etc/pam.d/system-login
+
+### install fonts and link
+pkg_fonts="dejavu-fonts-ttf xorg-fonts noto-fonts-ttf noto-fonts-cjk noto-fonts-emoji nerd-fonts"
+#ln -s /usr/share/fontconfig/conf.avail/70-no-bitmaps-except-emoji.conf /etc/fonts/conf.d
+
+### setting time zone
+### # ln -sf /usr/share/zoneinfo/Canada/Eastern /etc/localtime
