@@ -211,7 +211,7 @@ swapon /mnt/swapfile
 ### zswap setup - setting up zswap in post boot setup since the intention is to install a new kernel, the zswap setup will be done then only for the new kernel
 
 ### copy over system /etc files for configuration later
-cp -rf /install/voidinstall_secure/etc /mnt/
+cp -rf /install/voidinstall/etc/* /mnt/etc/
 
 ### make the folder for the xbps keys and copy them over
 echo "copying over xbps keys"
@@ -264,7 +264,7 @@ verbose: yes
     protocol: linux
     path: boot():/vmlinuz-6.12.77_1
     module_path: boot():/initramfs-6.12.77_1.img
-    cmdline: rd.luks.uuid=$TARGET_UUID rd.luks.name=$TARGET_UUID=cryptroot root=/dev/mapper/cryptroot rd.luks.allow-discards rw loglevel=7
+    cmdline: rd.luks.uuid=$TARGET_UUID rd.luks.name=$TARGET_UUID=cryptroot root=/dev/mapper/cryptroot rd.luks.allow-discards rw loglevel=7 zswap.enabled=1 zswap.compressor=zstd zswap.zpool=z3fold zswap.max_pool_percent=25 zswap.shrinker_enabled=1
 EOF
 
 ### then place the limine EFI image into the correct folder in the /boot partition so the BIOS knows how to find limine
@@ -299,6 +299,3 @@ cp /root/void-install/install.log /mnt/etc/install_.log
 ### [xchroot /mnt] # exit
 ### chroot /mnt xbps-reconfigure -fa
 ### #umount -R /mnt
-
-### TO DO
-### 1. add zswap parameters to bootloader cmdline
