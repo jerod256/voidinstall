@@ -34,6 +34,8 @@
 ### 4. installs fonts
 ### 5. installs a graphical desktop environment (sway)
 ### 6. sets timezone (Canada/Eastern)
+### 7. changes the user shell to fish
+### 8. sets up a cron job to trim the SSDs
 
 ### package list for gui
 pkg_gui_wl="xdg-desktop-portal-wlr wmenu wl-clipboard sway swaybg Waybar swaylock swayidle grim slurp wiremix bluetui kitty foot ffmpeg firefox qutebrowser firejail mesa fastfetch pam_rundir yazi mako neovim fish"
@@ -114,19 +116,12 @@ chmod u+x /etc/cron.weekly/fstrim
 command -v fish | sudo tee -a /etc/shells
 chsh -s "$(command -v fish)"
 
-### To do: priority list, not comprehensive
-### 1. do zswap setup in script
-### 2. look at adjusting kernel parameters
-### 	a. vm.vfs_cache_pressure
-### 	b. vm.swappiness
-### 	c. vm.dirty_ratio
-### 	d. max_pool_percent
-### 	e. zpool
-### 	f. transparent_hugepage
-
 ### Do later because of the complexity and/or risks:
 ### 1. Kernel update
-### 2. dotfile update
+### 2. Kernel parameter adjustments
+### 3. dotfile update
+### 4. zswap - note that it is not enabled by default
+### of these, zswap should be done earlier because of its crucial performance impact and the fact that void does not enable it by default
 
 ##### Check after running this script:
 ### 1. services linked and running (use '# sv status /var/service/*' and 'ls /var/service/')
