@@ -241,8 +241,7 @@ EOF
 chroot /mnt sed -i 's/^# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers
 
 ### copy over system /etc files for configuration later
-cp -rf /install/voidinstall/etc/greetd/* /mnt/etc/
-cp -rf /install/voidinstall/etc/dracut.conf.d/* /mnt/etc/
+cp -rf /install/voidinstall/etc/* /mnt/etc/
 
 #####################################################
 ##### Boot options: limine bootloader ###############
@@ -251,7 +250,7 @@ cp -rf /install/voidinstall/etc/dracut.conf.d/* /mnt/etc/
 ### limine setup
 
 ### first get the UUID of the physical root partition (holds encrypted root cryptroot inside)
-TARGET_UUID=$(blkid -s UUID -o value /dev/${disk}2)
+TARGET_UUID=$(blkid -s UUID -o value /dev/${default_install_name})
 
 ### then create the limine config file which includes the kernel command line
 cat <<EOF > /mnt/boot/limine.conf
