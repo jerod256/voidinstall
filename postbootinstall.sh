@@ -120,8 +120,10 @@ chsh -s "$(command -v fish)"
 ### 1. Kernel update
 ### 2. Kernel parameter adjustments
 ### 3. dotfile update
-### 4. zswap - note that it is not enabled by default
+### 4. neovim config clone
+### 5. zswap - note that it is not enabled by default
 ### of these, zswap should be done earlier because of its crucial performance impact and the fact that void does not enable it by default
+### might be a good idea to put the zswap into the bootloader with similar defaults to Arch Linux just to start, in the prebootinstall.sh. that way I don't have to ever worry about excessive disk swapping
 
 ##### Check after running this script:
 ### 1. services linked and running (use '# sv status /var/service/*' and 'ls /var/service/')

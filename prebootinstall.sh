@@ -299,3 +299,6 @@ cp /root/void-install/install.log /mnt/etc/install_.log
 ### [xchroot /mnt] # exit
 ### chroot /mnt xbps-reconfigure -fa
 ### #umount -R /mnt
+
+### TO DO
+### 1. add zswap parameters to bootloader cmdline
