@@ -1,0 +1,56 @@
+#!/bin/bash
+
+### this is a personal reference and notes for adjusting the kernel performance through available parameters
+### some snippets can be copied and pasted into /etc/sysctl.conf but this entire document cannot be and do not include the shebang
+
+### virtual memory management (/etc/sysctl.conf snippets below can be copied, comments can be added)
+### snippets begin below
+vm.vfs_cache_pressure=50 
+; keeps cached memory in RAM longer
+vm.swappiness=100 
+; makes it more aggressive to put memory in zswap RAM keeping uncompressed RAM having more available
+vm.dirty_ratio=10
+vm.dirty_background_ratio=5
+; puts writes to disk more often to prevent lockups
+### snippets end
+
+### CPU scheduler (append to the end of the cmdline in the limine bootloader, do not add the comments)
+### snippets begin below
+transparent_hugepage=madvise
+; prevents from constant memory defragmenting
+### snippets end
+
+### zswap settings (append to the end of the cmdline in the limine bootloader, do not add the comments)
+### good reference for zswap https://wiki.archlinux.org/title/Zswap
+### another good reference https://wiki.gentoo.org/wiki/Zswap
+### snippets begin below
+zswap.enabled=1
+zswap.compressor=zstd
+zswap.zpool=z3fold
+; zbud is a rough, light pool for compression, but easier to manage
+; zsmalloc is a very aggressive zpool
+; z3fold is a balanced approach for RAM limited systems
+zswap.max_pool_percent=25
+zswap.shrinker_enabled=1
+### snippets end
+### do not put entries on a new line, separate only with spaces
+### archlinux enables swap by default unless archinstall guides to zram enabling. void does not enable either by default
+
+
+### others to look into for other purposes
+### KSM - trades CPU cycles for more efficient RAM usage - potentially useful for server but maybe not for workstation
+### vm.max_map_count setting to 1048576 for gaming is recommended
+### readahead
+
+### can check 'cat /proc/pressure/cpu' to check for process pressure in CPU
+### can check 'cat /proc/pressure/memory' to check for process pressure in memory
+### can check 'cat /proc/pressure/io' to check for process pressure in io. also will tell if disk pressure is a problem and I should switch the scheduler from none to bfq. make sure I know by using iostat or iotop
+### can check memory usage and swap usage with 'vmstat 1'
+### can check how often swap in and out with 'cat /proc/vmstat | grep -E "pgmajfault|pswpin|pswpout"'
+
+### cat /proc/sys/kernel/sched_autogroup_enabled
+
+### USE ONLY ON SYSTEMS WITH VERY LOW RISK
+### turn cpu mitigations off
+### add to bootloader commandline:
+mitigations=off
