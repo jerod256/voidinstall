@@ -79,6 +79,12 @@ USER="${temp_username:-$default_USER}"
 echo
 echo
 
+### enter swap size
+echo -n "Enter the size of the swap file in gigabytes"
+read temp_swapsize
+echo
+echo
+
 ### 4. user password (also will be used for root)
 while true; do
 	echo -n "Enter password"
@@ -200,8 +206,9 @@ mount /dev/${default_efi_name} /mnt/boot
 
 ##### SWAP Setup
 ### Swap file setup
+swapbitsize=(numfmt --from=iec {$swap_size}k)
 ### create empty swap file
-dd if=/dev/zero of=/mnt/swapfile bs=1M count=6144
+dd if=/dev/zero of=/mnt/swapfile bs=1M count=$swapbitsize
 mkswap /mnt/swapfile
 chmod 0600 /mnt/swapfile
 swapon /mnt/swapfile
@@ -221,6 +228,12 @@ xbps-install -Sy -R $mirror -R $mirror_nonfree -r /mnt $pkg_base
 ### generate the filesystem tble
 echo "generting filesystem table..."
 xgenfstab /mnt > /mnt/etc/fstab
+### next I need to replace the boot sector label from the /dev/** to its UUID
+### first find the UUID
+BOOT_UUID=$(blkid -s UUID -o value /dev/${default_efi_name})
+### next inject the UUID into the UUID
+sed -i "s|/dev/$default_efi_name|UUID=$BOOT_UUID/g" /mnt/etc/fstab
+
 
 ### set permissions for the root
 chroot /mnt chown root:root /
